@@ -1,0 +1,93 @@
+group 'com.alexlong'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.7.7'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'com.google.protobuf'
+apply plugin: "idea"
+
+sourceCompatibility = 1.5
+
+String generatedSourcePath = "${projectDir}/src/generated"
+// Only when the codegen is built along with the project, will we be able to recompile
+// the proto files.
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.0.0-beta-2'
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:0.14.0' // CURRENT_GRPC_VERSION
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+
+//        all().each { task ->
+//            task.dependsOn ':grpc-compiler:java_pluginExecutable'
+//            // Delete the generated sources first, so that we can be alerted if they are not re-compiled.
+//            task.dependsOn 'deleteGeneratedSource' + task.sourceSet.name
+//            // Recompile protos when the codegen has been changed
+//            task.inputs.file javaPluginPath
+//            // Recompile protos when build.gradle has been changed, because
+//            // it's possible the version of protoc has been changed.
+//            task.inputs.file "${rootProject.projectDir}/build.gradle"
+//
+//            task.plugins {
+//                grpc {}
+//            }
+//        }
+    }
+    generatedFilesBaseDir = generatedSourcePath
+}
+
+//sourceSets.each { sourceSet ->
+//    Task "deleteGeneratedSource${sourceSet.name}" << {
+//        project.delete project.fileTree(dir: generatedSourcePath + '/' + sourceSet.name)
+//    }
+//}
+
+//protobuf {
+//    protoc {
+//        // The version of protoc must match protobuf-java. If you don't depend on
+//        // protobuf-java directly, you will be transitively depending on the
+//        // protobuf-java version that grpc depends on.
+//        artifact = "com.google.protobuf:protoc:3.0.0-beta-2"
+//    }
+//    plugins {
+//        grpc {
+//            artifact = 'io.grpc:protoc-gen-grpc-java:0.14.0'
+//        }
+//    }
+//    generateProtoTasks {
+//        all()*.plugins {
+//            grpc {}
+//        }
+//    }
+//}
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'io.grpc:grpc-all:0.14.0'
+}
+
+idea {
+    module {
+        sourceDirs += file("${projectDir}/build/generated/source/proto/main/java");
+        sourceDirs += file("${projectDir}/build/generated/source/proto/main/grpc");
+    }
+}
